@@ -19,4 +19,4 @@ d <- cbind(d,m)
 db <- d[d$Gender == "Boy",]
 dg <- d[d$Gender == "Girl",]
 
-
+db <- na.omit(d[d$Gender == "Boy",c("team","ind","binge","obese","overweight","any_thin","School")])
