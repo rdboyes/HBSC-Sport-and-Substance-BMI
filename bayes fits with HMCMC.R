@@ -1,6 +1,7 @@
-library(lme4)
 library(readr)
-library(rethinking)
+library(devtools)
+
+devtools::install_github("rmcelreath/rethinking", force = TRUE)
 
 HBSC_data <- read_csv("C:/Users/Student/Desktop/Data/HBSC Sport and Substance BMI/HBSC data.csv")
 
@@ -41,32 +42,22 @@ m1.3 <- map2stan(
 
 precis(m1.3)
 
+db$SchoolID <- as.numeric(factor(db$School, levels = unique(db$School)))
+
 m1.4 <- map2stan(
   alist(
-    binge ~ dbinom( 1 , p ),
-    logit(p) <- Intercept +
-      b_team*team +
-      b_ind*ind +
-      b_overweight*overweight +
-      b_obese*obese +
-      b_team_X_ind*team_X_ind +
-      b_team_X_obese*team_X_obese +
-      b_ind_X_obese*ind_X_obese +
-      b_team_X_overweight*team_X_overweight +
-      b_ind_X_overweight*ind_X_overweight +
-      b_team_X_ind_X_obese*team_X_ind_X_obese +
-      b_team_X_ind_X_overweight*team_X_ind_X_overweight,
-    Intercept ~ dnorm(0,10),
-    b_team ~ dnorm(0,10),
-    b_ind ~ dnorm(0,10),
-    b_overweight ~ dnorm(0,10),
-    b_obese ~ dnorm(0,10),
-    b_team_X_ind ~ dnorm(0,10),
-    b_team_X_obese ~ dnorm(0,10),
-    b_ind_X_obese ~ dnorm(0,10),
-    b_team_X_overweight ~ dnorm(0,10),
-    b_ind_X_overweight ~ dnorm(0,10),
-    b_team_X_ind_X_obese ~ dnorm(0,10),
-    b_team_X_ind_X_overweight ~ dnorm(0,10)
-  )
-)
+    binge ~ dbinom(1,p),
+    logit(p) <- a + a_school[SchoolID] + bTeam*team +
+    + team*overweight*bOverInt + overweight*bOver
+    + team*obese*bObeseInt + obese*bObese,
+    a_school[SchoolID] ~ dnorm(0,sigma_school),
+    c(a,bTeam,bObeseInt,bObese,bOverInt,bOver) ~ dnorm(0,10),
+    sigma_school ~ dcauchy(0,1)
+  ), 
+  data = db)
+
+precis(m1.4)
+plot(m1.4)
+plot(precis(m1.4))
+
+post <- extract.samples(m1.4)
