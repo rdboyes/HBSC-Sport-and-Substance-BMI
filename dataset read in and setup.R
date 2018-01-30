@@ -48,7 +48,7 @@ d<-rename(d, "white" = "white <- ifelse(eth == \"Caucasian\", 1, 0)")
 
 #4.0 Drop unnecessary variables
 
-d2 <- d[,c("Gender","team","ind","binge","siblings","obese","overweight","any_thin","School","white","SESav","SESbad","SESfair","SESgood","SESgreat","fam2","fam3","fam4")]
+d2 <- d[,c("Gender","team","ind","harddrug","siblings","obese","overweight","any_thin","School","white","SESav","SESbad","SESfair","SESgood","SESgreat","fam2","fam3","fam4")]
 
 #5.0 Stratify by gender
 
@@ -57,7 +57,7 @@ db2 <- d2[d2$Gender == "Boy",]
 
 #6.0 Adds a unique conseq. numeric ID variable for each school in the data set 
 
-db2$SchoolID <- as.numeric(factor(d2$School, levels = unique(db$School)))
+db2$SchoolID <- as.numeric(factor(db2$School, levels = unique(db$School)))
 dg2$SchoolID <- as.numeric(factor(dg2$School, levels = unique(db$School)))
 
 #7.0 Missing data handling - currently complete case is implemented

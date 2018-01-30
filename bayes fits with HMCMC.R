@@ -92,7 +92,7 @@ precis(m1.5)
 
 m2.0 <- map2stan(
   alist(
-    binge ~ dbinom(1,p),
+    harddrug ~ dbinom(1,p),
     logit(p) <- a 
     + a_school[SchoolID] 
     + bTeam*team
@@ -123,3 +123,38 @@ m2.0 <- map2stan(
   data = db2)
 
 precis(m2.0)
+
+post <- extract.samples(m2.0)
+
+post$pred_norm_ind <- post$bInd
+post$pred_norm_team <- post$bTeam
+post$pred_norm_both <- post$bInd + post$bTeam + post$bSportInt
+post$pred_over_ind <- post$bInd + post$bIndOverInt + post$bOver
+post$pred_over_team <- post$bTeam + post$bTeamOverInt + post$bOver
+post$pred_over_both <- post$bInd + post$bTeam + + post$bOver + post$bSportInt + post$bTeamOverInt  + post$bIndOverInt + post$bSportOverInt 
+post$pred_obese_ind <- post$bInd + post$bIndObeseInt + post$bOver
+post$pred_obese_team <- post$bTeam + post$bTeamObeseInt + post$bOver
+post$pred_obese_both <- post$bInd + post$bTeam + + post$bObese + post$bSportInt + post$bTeamObeseInt  + post$bIndObeseInt + post$bSportObeseInt
+
+
+post$contrast <- post$pred_obese_team - post$pred_obese_both
+
+dens(post$pred_norm_both, xlim = c(-1.5,1.5),col=rangi2, xlab = "Beta")
+dens(post$pred_over_both, add=TRUE,col=0x00FF00)
+dens(post$pred_obese_both, add=TRUE)
+
+dens(post$pred_norm_team, xlim = c(-1.5,1.0),col=rangi2, xlab = "Beta")
+dens(post$pred_over_team, add=TRUE,col=0x00FF00)
+dens(post$pred_obese_team, add=TRUE)
+
+dens(post$pred_obese_ind, xlim = c(-1.5,1.5),col="#FF0000",ylim=c(0,4), xlab = "Beta")
+dens(post$pred_obese_team, add=TRUE,col="#00AA00")
+dens(post$pred_obese_both, add=TRUE,col="#005500")
+dens(post$pred_over_ind, add=TRUE,col="#FF0000")
+dens(post$pred_over_team, add=TRUE,col="#AA0000")
+dens(post$pred_over_both, add=TRUE,col="#550000")
+dens(post$pred_norm_ind, add=TRUE,col="#0000FF")
+dens(post$pred_norm_team, add=TRUE,col="#0000AA")
+dens(post$pred_norm_both, add=TRUE,col="#000088")
+
+dens(post$contrast, xlim = c(-1.5,1.5),col="#FF0000",ylim=c(0,4), xlab = "Beta")
