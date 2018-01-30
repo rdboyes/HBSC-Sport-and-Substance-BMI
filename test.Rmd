@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 title: "test R markdown"
 output: html_document
