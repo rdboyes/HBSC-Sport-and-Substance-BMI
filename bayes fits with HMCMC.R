@@ -88,7 +88,7 @@ m1.5 <- map2stan(
 precis(m1.5)
 
 #Model 2.0
-#Starts with 1.5, adds confounding variables
+#Starts with 1.5, adds confounding variables. Convergence time now at 2.5x compared to model 1.4. (3.5 minutes on my PC)
 
 m2.0 <- map2stan(
   alist(
@@ -105,9 +105,19 @@ m2.0 <- map2stan(
     + bOver*overweight
     + bTeamOverInt*team*overweight 
     + bIndOverInt*ind*overweight
-    + bSportOverInt*team*ind*overweight,
+    + bSportOverInt*team*ind*overweight
+    + bSESgood*SESgood
+    + bSESgreat*SESgreat
+    + bSESfair*SESfair
+    + bSESbad*SESbad
+    + bfam2*fam2
+    + bfam3*fam3
+    + bfam4*fam4
+    + bWhite*white
+    + bSiblings*siblings,
     a_school[SchoolID] ~ dnorm(0,sigma_school),
     c(a,bTeam,bInd,bSportInt,bObese,bTeamObeseInt,bIndObeseInt,bSportObeseInt,bOver,bTeamOverInt,bIndOverInt,bSportOverInt) ~ dnorm(0,10),
+    c(bSESgreat,bSESgood,bSESfair,bSESbad,bfam2,bfam3,bfam4,bWhite,bSiblings) ~ dnorm(0,10),
     sigma_school ~ dcauchy(0,1)
   ), 
   data = db2)

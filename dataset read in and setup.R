@@ -1,30 +1,68 @@
+#0.1. Required libraries
+
 library(readr)
 library(lme4)
 library(dplyr)
+
+#1.0. Read data file from CSV and convert to dataframe
 
 HBSC_data <- read_csv("C:/Users/Student/Desktop/Data/HBSC Sport and Substance BMI/HBSC data.csv")
 
 d <- as.data.frame(HBSC_data)
 
+#2.0. Create 0/1 exposure variables as numeric
+
 d$weed <- as.integer(d$weed)
 d$sports <- as.integer(d$sports)
 d$team <- as.integer(d$team)
 d$ind <- d$sports - 2*d$team
+d$chew <- as.integer(d$chew)
+d$siblings <- as.integer(d$siblings)
+
+#3.0. Create Dummy variables for factor variables (there are missing data leaks in this code, needs fixing)
+
+#3.1 BMI
 
 d$bmifactor <- as.factor(d$`bmi classification`)
 m <- dummy(d$bmifactor)
 mdf <- as.data.frame(m)
-mutate(mdf, any_thin = xor(thin, `severely thin`))
+mdf <- mutate(mdf, any_thin = xor(thin, `severely thin`))
 d <- cbind(d,mdf)
 
-dg <- d[d$Gender == "Girl",]
+#3.2 Family Structure
 
-db <- na.omit(d[d$Gender == "Boy",])
+m2 <- as.data.frame(dummy(as.factor(d$family)))
+colnames(m2)<-c("fam2","fam3","fam4")
+d <- cbind(d,m2)
 
-db2 <- db[,c("team","ind","binge","obese","overweight","any_thin","School")]
-dg2 <- dg[,c("team","ind","binge","obese","overweight","any_thin","School")]
+#3.3 Socioeconomic Status
 
-#Adds a unique conseq. numeric ID variable for each school in the data set 
+m3 <- as.data.frame(dummy(as.factor(d$`Family well off`)))
+colnames(m3)<-c("SESav","SESbad","SESfair","SESgood","SESgreat")
+d <- cbind(d,m3)
 
-db2$SchoolID <- as.numeric(factor(db2$School, levels = unique(db$School)))
+#3.4 Ethnicity
+
+d<-mutate(d, white <- ifelse(eth == "Caucasian",1,0))
+d<-rename(d, "white" = "white <- ifelse(eth == \"Caucasian\", 1, 0)")
+
+#4.0 Drop unnecessary variables
+
+d2 <- d[,c("Gender","team","ind","binge","siblings","obese","overweight","any_thin","School","white","SESav","SESbad","SESfair","SESgood","SESgreat","fam2","fam3","fam4")]
+
+#5.0 Stratify by gender
+
+dg2 <- d2[d2$Gender == "Girl",]
+db2 <- d2[d2$Gender == "Boy",]
+
+#6.0 Adds a unique conseq. numeric ID variable for each school in the data set 
+
+db2$SchoolID <- as.numeric(factor(d2$School, levels = unique(db$School)))
 dg2$SchoolID <- as.numeric(factor(dg2$School, levels = unique(db$School)))
+
+#7.0 Missing data handling - currently complete case is implemented
+
+db2 <- na.omit(db2)
+dg2 <- na.omit(dg2)
+
+
