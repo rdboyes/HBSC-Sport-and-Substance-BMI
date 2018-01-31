@@ -18,6 +18,8 @@ d$team <- as.integer(d$team)
 d$ind <- d$sports - 2*d$team
 d$chew <- as.integer(d$chew)
 d$siblings <- as.integer(d$siblings)
+d$region <- as.integer(d$`Region/Municipality`)
+d$grade_cat <- if_else(d$Grade <= 9,9,10)
 
 #3.0. Create Dummy variables for factor variables (there are missing data leaks in this code, needs fixing)
 
@@ -46,9 +48,21 @@ d <- cbind(d,m3)
 d<-mutate(d, white <- ifelse(eth == "Caucasian",1,0))
 d<-rename(d, "white" = "white <- ifelse(eth == \"Caucasian\", 1, 0)")
 
+#3.5 Statscan Rurality
+
+m4 <- as.data.frame(dummy(as.factor(d$`StatsCan Code`)))
+colnames(m4) <- c("RURmed", "RURlarge","RURvsmall","RURsmall")
+d <- cbind(d, m4)
+
+#3.6 Rurality
+
+
+
 #4.0 Drop unnecessary variables
 
-d2 <- d[,c("Gender","team","ind","harddrug","siblings","obese","overweight","any_thin","School","white","SESav","SESbad","SESfair","SESgood","SESgreat","fam2","fam3","fam4")]
+d2 <- d[,c("Gender","team","ind","harddrug","siblings","obese","overweight","any_thin",
+           "School","white","SESav","SESbad","SESfair","SESgood","SESgreat","fam2","fam3","fam4",
+           "RURmed", "RURlarge","RURvsmall","RURsmall","grade_cat")]
 
 #5.0 Stratify by gender
 
