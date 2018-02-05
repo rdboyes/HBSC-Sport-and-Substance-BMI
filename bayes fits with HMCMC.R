@@ -88,7 +88,7 @@ m1.5 <- map2stan(
 precis(m1.5)
 
 #Model 2.0
-#Starts with 1.5, adds confounding variables. Convergence time now at 5.0x compared to model 1.4. (15 minutes on my PC)
+#Starts with 1.5, adds confounding variables. Convergence time now at >10.0x compared to model 1.4. (40 minutes on my PC)
 
 m2.0 <- map2stan(
   alist(

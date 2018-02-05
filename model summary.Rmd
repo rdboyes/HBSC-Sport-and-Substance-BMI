@@ -8,21 +8,28 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(rethinking)
-#0.1. Required libraries
+knitr::opts_chunk$set(eval = FALSE)
+```
 
+#0.1. Required libraries
+```{r}
+library(rethinking)
 library(readr)
 library(lme4)
 library(dplyr)
+```
 
 #1.0. Read data file from CSV and convert to dataframe
 
+```{r}
 HBSC_data <- read_csv("C:/Users/Student/Desktop/Data/HBSC Sport and Substance BMI/HBSC data.csv")
 
 d <- as.data.frame(HBSC_data)
+```
 
 #2.0. Create 0/1 exposure variables as numeric
 
+```{r}
 d$weed <- as.integer(d$weed)
 d$sports <- as.integer(d$sports)
 d$team <- as.integer(d$team)
@@ -31,62 +38,77 @@ d$chew <- as.integer(d$chew)
 d$siblings <- as.integer(d$siblings)
 d$region <- as.integer(d$`Region/Municipality`)
 d$grade_cat <- if_else(d$Grade <= 9,9,10)
+```
 
 #3.0. Create Dummy variables for factor variables (there are missing data leaks in this code, needs fixing)
 
 #3.1 BMI
 
+```{r}
 d$bmifactor <- as.factor(d$`bmi classification`)
 m <- dummy(d$bmifactor)
 mdf <- as.data.frame(m)
 mdf <- mutate(mdf, any_thin = xor(thin, `severely thin`))
 d <- cbind(d,mdf)
+```
 
 #3.2 Family Structure
 
+```{r}
 m2 <- as.data.frame(dummy(as.factor(d$family)))
 colnames(m2)<-c("fam2","fam3","fam4")
 d <- cbind(d,m2)
 
+```
+
 #3.3 Socioeconomic Status
 
+```{r}
 m3 <- as.data.frame(dummy(as.factor(d$`Family well off`)))
 colnames(m3)<-c("SESav","SESbad","SESfair","SESgood","SESgreat")
 d <- cbind(d,m3)
+```
 
 #3.4 Ethnicity
 
+```{r}
 d<-mutate(d, white <- ifelse(eth == "Caucasian",1,0))
 d<-rename(d, "white" = "white <- ifelse(eth == \"Caucasian\", 1, 0)")
+```
 
 #3.5 Statscan Rurality
 
+```{r}
 m4 <- as.data.frame(dummy(as.factor(d$`StatsCan Code`)))
 colnames(m4) <- c("RURmed", "RURlarge","RURvsmall","RURsmall")
 d <- cbind(d, m4)
-
-#3.6 Rurality
-
-
+```
 
 #4.0 Drop unnecessary variables
 
+```{r}
 d2 <- d[,c("Gender","team","ind","harddrug","siblings","obese","overweight","any_thin",
            "School","white","SESav","SESbad","SESfair","SESgood","SESgreat","fam2","fam3","fam4",
            "RURmed", "RURlarge","RURvsmall","RURsmall","grade_cat")]
+```
 
 #5.0 Stratify by gender
 
+```{r}
 dg2 <- d2[d2$Gender == "Girl",]
 db2 <- d2[d2$Gender == "Boy",]
+```
 
 #6.0 Adds a unique conseq. numeric ID variable for each school in the data set 
 
+```{r}
 db2$SchoolID <- as.numeric(factor(db2$School, levels = unique(db2$School)))
 dg2$SchoolID <- as.numeric(factor(dg2$School, levels = unique(dg2$School)))
+```
 
 #7.0 Missing data handling - currently complete case is implemented
 
+```{r}
 db2 <- na.omit(db2)
 dg2 <- na.omit(dg2)
 
@@ -96,7 +118,7 @@ dg2 <- na.omit(dg2)
 
 The working model for this paper is a sex-stratified Bayesian random intercepts logistic model. Hard drug use is modelled as a function of a binomial distribution with the logit of p determined by a linear combination of the exposures and confounding variables. Weakly regularizing normal priors are used for all parameters with the exception of the standard distribution of the school-level intercepts, which use a cauchy prior. Interaction effects are included for team sport participation, individual sport participation, and BMI.   
 
-```{r model with priors}
+```{r model with priors, eval=FALSE,echo=TRUE}
 m2.0 <- map2stan(
   alist(
     harddrug ~ dbinom(1,p),
@@ -139,7 +161,7 @@ m2.0 <- map2stan(
 
 Hamiltonian Markov Chain Monte Carlo using rStan was used to fit the model. The behavior of the chains is shown below.
 
-```{r pressure, echo=FALSE}
+```{r, eval=TRUE}
 plot(m2.0, pars = c("bTeam","bInd","bSiblings","bObese","bOver",
                     "bSESbad","bSESfair","bSESgood","bSESgreat","bfam2","bfam3","bfam4",
                     "bRURmed", "bRURlarge","bRURvsmall","bRURsmall","bGrade_cat","sigma_school"),max_rows = 6)
@@ -153,7 +175,7 @@ Estimation of the effects is shown below.
 plot(precis(m2.0))
 ```
 
-```{posterior calculations, include=FALSE}
+```{r posterior calculations}
 post <- extract.samples(m2.0)
 
 #Combine these 1000 points to form predictions for all types of people 
@@ -170,8 +192,6 @@ post$pred_obese_team <- post$bTeam + post$bTeamObeseInt + post$bOver
 post$pred_obese_both <- post$bInd + post$bTeam + + post$bObese + post$bSportInt + post$bTeamObeseInt  + post$bIndObeseInt + post$bSportObeseInt
 
 ```
-
-
 
 ## Plots
 
