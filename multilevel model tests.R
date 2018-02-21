@@ -34,8 +34,8 @@ m2.1 <- map2stan(
     a_region[region] ~ dnorm(0,sigma_region),
     c(a,bTeam,bInd,bSportInt,bObese,bTeamObeseInt,bIndObeseInt,bSportObeseInt,bOver,bTeamOverInt,bIndOverInt,bSportOverInt) ~ dnorm(0,10),
     c(bSESgreat,bSESgood,bSESfair,bSESbad,bfam2,bfam3,bfam4,bWhite,bSiblings,bRURlarge,bRURsmall,bGrade_cat) ~ dnorm(0,10),
-    sigma_school ~ dcauchy(0,1),
-    sigma_region ~ dcauchy(0,1)
+    sigma_school ~ dnorm(0.5,0.2),
+    sigma_region ~ dcauchy(0.5,0.2)
   ), 
   data = db2)
 
@@ -219,14 +219,18 @@ abline(v=0,col="#000000", add=TRUE)
 rows <- c("Thin BMI","Normal BMI","Overweight BMI","Obese BMI")
 columns <- c("No Sport","Low","High","Team Sport","TLow","THigh")
 
-results <- as.data.frame(exp(rbind(
-  c(mean(post$pred_thin_none),HPDI(post$pred_thin_none)),
-  c(0,0,0),
-  c(mean(post$pred_over_none),HPDI(post$pred_over_none)),
-  c(mean(post$pred_obese_none),HPDI(post$pred_obese_none)),
-  c(mean(post$pred_thin_team),HPDI(post$pred_thin_team)),
-  c(mean(post$pred_norm_team),HPDI(post$pred_norm_team)), 
-  c(mean(post$pred_over_team),HPDI(post$pred_over_team)), 
-  c(mean(post$pred_obese_team),HPDI(post$pred_obese_team))
-)))
+results <- 
+  cbind(
+    as.data.frame(exp(rbind(
+      c(mean(post$pred_thin_none),HPDI(post$pred_thin_none)),
+      c(0,0,0),
+      c(mean(post$pred_over_none),HPDI(post$pred_over_none)),
+      c(mean(post$pred_obese_none),HPDI(post$pred_obese_none))))),
+    as.data.frame(exp(rbind(
+      c(mean(post$pred_thin_team),HPDI(post$pred_thin_team)),
+      c(mean(post$pred_norm_team),HPDI(post$pred_norm_team)), 
+      c(mean(post$pred_over_team),HPDI(post$pred_over_team)), 
+      c(mean(post$pred_obese_team),HPDI(post$pred_obese_team))
+))))
 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
